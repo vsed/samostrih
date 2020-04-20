@@ -55,7 +55,24 @@ yoffset = int(name_dimensions[1] + 30)
 verse_offset = (xoffset, yoffset)
 verse_position = np.add(name_position, verse_offset)
 
-def color_correction(ab=50, gm=50, magnitude=50, contrast=10):
+def rgb_correction(ab=50, gm=50):
+    """
+    Returns RGB array for color correction.
+    It is meant to be used as an image which
+    overlays treated picure - still or motion.
+
+
+
+    :param ab: Amber/Blue balance, aka warm/cold
+                value 0-100
+                0 = warmest
+                100 = coldest
+
+    :param gm: Green/Magenta balance
+                value 0-100
+                0 = greenest
+                100 = "magentest"
+    """
     a = (1, 0.75, 0)
     b = (0, 0, 1)
     g = (0, 1, 0)
@@ -66,29 +83,37 @@ def color_correction(ab=50, gm=50, magnitude=50, contrast=10):
     cold = zero
     green = zero
     magenta = zero
+    ab_res = zero
+    gm_res = zero
 
     if ab != 50:
+        abx = abs(50 - ab) / 2
         if ab > 50:
-            ab -= 50
-            warm = np.multiply(a, ab * 5.1)
-
+            warm = np.multiply(a, abx * 5.1)
+            ab_res = warm
         else:
-            cold = np.multiply(b, ab * 5.1)
+            cold = np.multiply(b, abx * 5.1)
+            ab_res = cold
+    if gm != 50:
+        gmx = abs(50 - gm) / 2
+        if gm > 50:
+            gm -= 50
+            green = np.multiply(g, gmx * 5.1)
+            gm_res = green
+        else:
+            magenta = np.multiply(m, gmx * 5.1)
+            gm_res = magenta
 
+    basic = np.add(ab_res, gm_res)
+    multiplicator = 255 / max(basic)
+    result = np.multiply(basic, multiplicator)
 
-    if gm > 50:
-        gm -= 50
-        green = np.multiply(g, gm * 5.1)
-
-    if gm < 50:
-        magenta = np.multiply(m, gm * 5.1)
-
-    return np.add([warm, cold, green, magenta])
-
+    return result.astype(int)
 
 a = (1, 0.75, 0)
 # print(np.multiply(a, 255))
-print(color_correction(60))
+print(rgb_correction(88, 11))
+print(max(rgb_correction(88, 11)))
 
 
 
