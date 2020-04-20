@@ -1,11 +1,31 @@
-from moviepy.editor import ImageClip, TextClip, CompositeVideoClip
-import numpy
-
+from moviepy.editor import * #ImageClip, TextClip, CompositeVideoClip, show, preview
+import moviepy.video.fx.all as vfx
+import numpy as np
+import time
+# import pygame
 
 # Font size:
 
 name_fontsize = 90
 verse_fontsize = int(name_fontsize * 0.62)
+
+##################### pygame:
+
+import pygame, sys
+from pygame.locals import *
+
+# pygame.init()
+# DISPLAYSURF = pygame.display.set_mode((400, 300))
+# pygame.display.set_caption('Hello World!')
+# while True: # main game loop
+#     for event in pygame.event.get():
+#         if event.type == QUIT:
+#             pygame.quit()
+#             sys.exit()
+#     pygame.display.update()
+
+
+#######################
 
 # THIS IS INTRO SECTION:
 
@@ -26,20 +46,90 @@ anchor = (1342, 744)
 # Position of the name calculations:
 name_dimensions = name.size
 name_offset = (name_dimensions[0] / 2, 0)
-name_position = numpy.subtract(anchor, name_offset)
+name_position = np.subtract(anchor, name_offset)
 
 # Position of the verse, relative to the name position - centered:
 verse_dimensions = verse.size
 xoffset = int((name_dimensions[0] - verse_dimensions[0]) / 2)
 yoffset = int(name_dimensions[1] + 30)
 verse_offset = (xoffset, yoffset)
-verse_position = numpy.add(name_position, verse_offset)
+verse_position = np.add(name_position, verse_offset)
 
-# print(offset)
+def color_correction(ab=50, gm=50, magnitude=50, contrast=10):
+    a = (1, 0.75, 0)
+    b = (0, 0, 1)
+    g = (0, 1, 0)
+    m = (1, 0, 1)
+
+    zero = np.zeros([1, 3])
+    warm = zero
+    cold = zero
+    green = zero
+    magenta = zero
+
+    if ab != 50:
+        if ab > 50:
+            ab -= 50
+            warm = np.multiply(a, ab * 5.1)
+
+        else:
+            cold = np.multiply(b, ab * 5.1)
 
 
+    if gm > 50:
+        gm -= 50
+        green = np.multiply(g, gm * 5.1)
+
+    if gm < 50:
+        magenta = np.multiply(m, gm * 5.1)
+
+    return np.add([warm, cold, green, magenta])
+
+
+a = (1, 0.75, 0)
+# print(np.multiply(a, 255))
+print(color_correction(60))
+
+
+
+
+
+amber = ColorClip((1920, 1080), color=(255, 192, 0))
+blue = ColorClip((300, 300), color=(0, 0, 255))
+magenta = ColorClip((1920, 1080), color=(255, 0, 255))
+green = ColorClip((300, 300), color=(0, 255, 0))
+black = ColorClip((1920, 1080), color=(0, 0, 0))
+gray = ColorClip((1920, 1080), color=(128, 128, 128))
 
 result = CompositeVideoClip([intro, name.set_position(name_position), verse.set_position(verse_position)])
+# result.show(0)
 
-result.write_videofile("test.mp4", fps=29.97, ffmpeg_params=['-crf', '22'], codec='libx264')
+
+blueclip = ImageClip('blue.jpg')
+blueclip2 = blueclip.fx(vfx.colorx, 0.9)
+corrected = CompositeVideoClip([blueclip2, amber.set_opacity(0.13)])
+corrected2 = CompositeVideoClip([corrected, magenta.set_opacity(0.01)])
+corrected3 = corrected2.fx(vfx.lum_contrast, lum=0, contrast=0.3, contrast_thr=126)
+
+# # corrected.show()
+# corrected.save_frame(filename="corrected.png")
+# corrected2.save_frame(filename="corrected2.png")
+# corrected3.save_frame(filename="corrected3.png")
+
+cor = ColorClip((1920, 1080), color=(255, 200, 39))
+# cor.save_frame(filename="cor.png")
+mid = blueclip.fx(vfx.colorx, 0.9)
+mid2 = CompositeVideoClip([mid, cor.set_opacity(0.13)])
+final = mid2.fx(vfx.lum_contrast, lum=0, contrast=0.3, contrast_thr=126)
+# final.save_frame(filename="final.png")
+
+# run = True
+# while run: # main game loop
+#     for event in pygame.event.get():
+#         if event.type == QUIT:
+#             run = False
+
+print("hello")
+
+# result.write_videofile("test.mp4", fps=29.97, ffmpeg_params=['-crf', '22'], codec='libx264')
 # result.save_frame(filename='test.png')
