@@ -1,6 +1,7 @@
 from moviepy.editor import * #ImageClip, TextClip, CompositeVideoClip, show, preview
 import moviepy.video.fx.all as vfx
 import numpy as np
+from itertools import chain
 import time
 # import pygame
 
@@ -57,7 +58,7 @@ verse_position = np.add(name_position, verse_offset)
 
 def rgb_correction(ab=50, gm=50):
     """
-    Returns RGB array for color correction.
+    Returns RGB array for color correction as a tuple.
     It is meant to be used as an image which
     overlays treated picure - still or motion.
 
@@ -78,7 +79,9 @@ def rgb_correction(ab=50, gm=50):
     g = (0, 1, 0)
     m = (1, 0, 1)
 
-    zero = np.zeros([1, 3])
+    zero = np.array((0, 0, 0))
+    ones = np.array((1, 1, 1))
+
     warm = zero
     cold = zero
     green = zero
@@ -94,6 +97,7 @@ def rgb_correction(ab=50, gm=50):
         else:
             cold = np.multiply(b, abx * 5.1)
             ab_res = cold
+
     if gm != 50:
         gmx = abs(50 - gm) / 2
         if gm > 50:
@@ -105,19 +109,31 @@ def rgb_correction(ab=50, gm=50):
             gm_res = magenta
 
     basic = np.add(ab_res, gm_res)
-    multiplicator = 255 / max(basic)
-    result = np.multiply(basic, multiplicator)
+    print("basic: ", basic)
+    print("gm: ", gm_res, "ab: ", ab_res)
+    multiplicator = 255 / np.max(basic)
+    if multiplicator <= 0 or multiplicator > 255:
+        multiplicator = 1
+    print("multiplicator: ", multiplicator)
+    data = np.multiply(basic, multiplicator)
+    preresult = np.ndarray.tolist(data.astype(int))
+    # result = tuple(chain.from_iterable(preresult))
+    print("preresult: ", preresult)
+    result = tuple(preresult)
+    magnitude = 1 / multiplicator / 2
+    if ab == 50 and gm == 50:
+        magnitude = 0
+    return result, magnitude
 
-    return result.astype(int)
-
-a = (1, 0.75, 0)
-# print(np.multiply(a, 255))
-print(rgb_correction(88, 11))
-print(max(rgb_correction(88, 11)))
 
 
+fix_rgb, magnitude = rgb_correction()
+fixx_rgb = fix_rgb
+print("output: ", fix_rgb)
+print(type(fixx_rgb))
+print("magnitude: ", magnitude)
 
-
+fix_clip = ColorClip((1920, 1080), color=fix_rgb)
 
 amber = ColorClip((1920, 1080), color=(255, 192, 0))
 blue = ColorClip((300, 300), color=(0, 0, 255))
@@ -140,6 +156,8 @@ corrected3 = corrected2.fx(vfx.lum_contrast, lum=0, contrast=0.3, contrast_thr=1
 # corrected.save_frame(filename="corrected.png")
 # corrected2.save_frame(filename="corrected2.png")
 # corrected3.save_frame(filename="corrected3.png")
+fix_clip.save_frame(filename="fix.png")
+
 
 cor = ColorClip((1920, 1080), color=(255, 200, 39))
 # cor.save_frame(filename="cor.png")
