@@ -5,11 +5,15 @@ from itertools import chain
 import time
 # import pygame
 
-# Font size:
-
+# VARIABLES:
+name = "Bože, tys můj bůh!"
 name_fontsize = 90
+verse = "Žalm 63"
 verse_fontsize = int(name_fontsize * 0.62)
+
 input_video = "sample.mp4"
+resolution = (1920, 1080)
+fps = 29.97
 
 ##################### pygame:
 
@@ -35,11 +39,11 @@ from pygame.locals import *
 intropic = "BCPlogonazev.png"
 
 # Now we turn it into a 5 sec clip:
-intro_background = ImageClip(intropic).set_duration("5")
+intro_background = ImageClip(intropic)
 
 # Name and verse of the sermon:
-name = TextClip(txt="Bože, tys můj bůh!", font="Arial", fontsize=name_fontsize, color="gray15").set_duration("5")
-verse = TextClip(txt="Žalm 63", font="Arial", fontsize=verse_fontsize, color="gray15").set_duration("5")
+name = TextClip(txt=name, font="Arial", fontsize=name_fontsize, color="gray15")
+verse = TextClip(txt=verse, font="Arial", fontsize=verse_fontsize, color="gray15")
 
 # Position of the name and verse text:
 # Anchor is x and y coordinates of a point - under which the text will be drawn
@@ -57,15 +61,15 @@ yoffset = int(name_dimensions[1] + 30)
 verse_offset = (xoffset, yoffset)
 verse_position = np.add(name_position, verse_offset)
 
-intro = CompositeVideoClip([intro_background, name.set_position(name_position), verse.set_position(verse_position)])
-
+preintro = CompositeVideoClip([intro_background, name.set_position(name_position), verse.set_position(verse_position)])
+intro = preintro.set_duration("2")
 ###################### END OF INTRO
 
 ###################################
 # VIDEO SECTION:
 
-video = VideoFileClip(input_video)
-
+prevideo = VideoFileClip(input_video)
+video = prevideo.resize(resolution).set_start(3)
 
 
 
@@ -77,8 +81,7 @@ video = VideoFileClip(input_video)
 
 
 
-
-final = concatenate([intro, video.crossfadein(1)])
+final = CompositeVideoClip([intro, video.set_start(intro.end-1).crossfadein(1)])   # .crossfadein(1)
 
 
 
@@ -89,7 +92,7 @@ final = concatenate([intro, video.crossfadein(1)])
 
 
 
-final.write_videofile("output.mp4")
+final.write_videofile("output.mp4", fps=fps, preset="ultrafast", codec="libx264")
 
 
 
