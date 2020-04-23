@@ -9,6 +9,7 @@ import time
 
 name_fontsize = 90
 verse_fontsize = int(name_fontsize * 0.62)
+input_video = "sample.mp4"
 
 ##################### pygame:
 
@@ -34,7 +35,7 @@ from pygame.locals import *
 intropic = "BCPlogonazev.png"
 
 # Now we turn it into a 5 sec clip:
-intro = ImageClip(intropic).set_duration("5")
+intro_background = ImageClip(intropic).set_duration("5")
 
 # Name and verse of the sermon:
 name = TextClip(txt="Bože, tys můj bůh!", font="Arial", fontsize=name_fontsize, color="gray15").set_duration("5")
@@ -55,6 +56,46 @@ xoffset = int((name_dimensions[0] - verse_dimensions[0]) / 2)
 yoffset = int(name_dimensions[1] + 30)
 verse_offset = (xoffset, yoffset)
 verse_position = np.add(name_position, verse_offset)
+
+intro = CompositeVideoClip([intro_background, name.set_position(name_position), verse.set_position(verse_position)])
+
+###################### END OF INTRO
+
+###################################
+# VIDEO SECTION:
+
+video = VideoFileClip(input_video)
+
+
+
+
+
+###################### END OF VIDEO
+
+###################################
+# MIXING SECTION:
+
+
+
+
+final = concatenate([intro, video.crossfadein(1)])
+
+
+
+########################## END OF MIXING
+
+########################################
+# OUTPUT SECTION:
+
+
+
+final.write_videofile("output.mp4")
+
+
+
+
+
+########################### END OF OUTPUT
 
 def rgb_correction(ab=50, gm=50):
     """
@@ -127,43 +168,44 @@ def rgb_correction(ab=50, gm=50):
 
 
 
-fix_rgb, magnitude = rgb_correction()
+fix_rgb, magnitude = rgb_correction(40, 60)
 fixx_rgb = fix_rgb
-print("output: ", fix_rgb)
-print(type(fixx_rgb))
-print("magnitude: ", magnitude)
+# print("output: ", fix_rgb)
+# print(type(fixx_rgb))
+# print("magnitude: ", magnitude)
 
 fix_clip = ColorClip((1920, 1080), color=fix_rgb)
 
-amber = ColorClip((1920, 1080), color=(255, 192, 0))
-blue = ColorClip((300, 300), color=(0, 0, 255))
-magenta = ColorClip((1920, 1080), color=(255, 0, 255))
-green = ColorClip((300, 300), color=(0, 255, 0))
-black = ColorClip((1920, 1080), color=(0, 0, 0))
-gray = ColorClip((1920, 1080), color=(128, 128, 128))
+# amber = ColorClip((1920, 1080), color=(255, 192, 0))
+# blue = ColorClip((300, 300), color=(0, 0, 255))
+# magenta = ColorClip((1920, 1080), color=(255, 0, 255))
+# green = ColorClip((300, 300), color=(0, 255, 0))
+# black = ColorClip((1920, 1080), color=(0, 0, 0))
+# gray = ColorClip((1920, 1080), color=(128, 128, 128))
 
-result = CompositeVideoClip([intro, name.set_position(name_position), verse.set_position(verse_position)])
+
 # result.show(0)
 
-
-blueclip = ImageClip('blue.jpg')
-blueclip2 = blueclip.fx(vfx.colorx, 0.9)
-corrected = CompositeVideoClip([blueclip2, amber.set_opacity(0.13)])
-corrected2 = CompositeVideoClip([corrected, magenta.set_opacity(0.01)])
-corrected3 = corrected2.fx(vfx.lum_contrast, lum=0, contrast=0.3, contrast_thr=126)
+#
+# blueclip = ImageClip('blue.jpg')
+# ex = ImageClip("blue.jpg")
+# blueclip2 = blueclip.fx(vfx.colorx, 0.9)
+# corrected = CompositeVideoClip([blueclip2, amber.set_opacity(0.13)])
+# corrected2 = CompositeVideoClip([corrected, magenta.set_opacity(0.01)])
+# corrected3 = corrected2.fx(vfx.lum_contrast, lum=0, contrast=0.3, contrast_thr=126)
 
 # # corrected.show()
 # corrected.save_frame(filename="corrected.png")
 # corrected2.save_frame(filename="corrected2.png")
 # corrected3.save_frame(filename="corrected3.png")
-fix_clip.save_frame(filename="fix.png")
-
-
-cor = ColorClip((1920, 1080), color=(255, 200, 39))
-# cor.save_frame(filename="cor.png")
-mid = blueclip.fx(vfx.colorx, 0.9)
-mid2 = CompositeVideoClip([mid, cor.set_opacity(0.13)])
-final = mid2.fx(vfx.lum_contrast, lum=0, contrast=0.3, contrast_thr=126)
+# fix_clip.save_frame(filename="fix.png")
+#
+#
+# cor = ColorClip((1920, 1080), color=(255, 200, 39))
+# # cor.save_frame(filename="cor.png")
+# mid = blueclip.fx(vfx.colorx, 0.9)
+# mid2 = CompositeVideoClip([mid, cor.set_opacity(0.13)])
+# final = mid2.fx(vfx.lum_contrast, lum=0, contrast=0.3, contrast_thr=126)
 # final.save_frame(filename="final.png")
 
 # run = True
@@ -172,7 +214,7 @@ final = mid2.fx(vfx.lum_contrast, lum=0, contrast=0.3, contrast_thr=126)
 #         if event.type == QUIT:
 #             run = False
 
-print("hello")
+# print("hello")
 
 # result.write_videofile("test.mp4", fps=29.97, ffmpeg_params=['-crf', '22'], codec='libx264')
 # result.save_frame(filename='test.png')
