@@ -10,8 +10,10 @@ name = "Bože, tys můj bůh!"
 name_fontsize = 90
 verse = "Žalm 63"
 verse_fontsize = int(name_fontsize * 0.62)
+intro_length = "2.22"
 
 input_video = "sample.mp4"
+video_start = 0
 resolution = (1920, 1080)
 fps = 29.97
 
@@ -62,14 +64,14 @@ verse_offset = (xoffset, yoffset)
 verse_position = np.add(name_position, verse_offset)
 
 preintro = CompositeVideoClip([intro_background, name.set_position(name_position), verse.set_position(verse_position)])
-intro = preintro.set_duration("2")
+intro = preintro.set_duration(intro_length)
 ###################### END OF INTRO
 
 ###################################
 # VIDEO SECTION:
 
 prevideo = VideoFileClip(input_video)
-video = prevideo.resize(resolution).set_start(3)
+video = prevideo.resize(resolution).set_start(video_start)
 
 
 
