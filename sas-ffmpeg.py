@@ -16,7 +16,7 @@ intro_length = "2.22"
 
 input_video = "sample.mp4"
 video_start = 0
-resolution = (1920, 1080)
+resolution = '1920:1080'
 fps = 29.97
 
 
@@ -63,17 +63,22 @@ draw.text(verse_position, verse, fill=text_color, font=verse_font)
 # save the edited image
 
 intro.save('intro.png')
+intro_file = 'intro.png'
 ###################### END OF INTRO
 
 ###################################
 # VIDEO SECTION:
 
+output_opts = '-y -vf scale=' + resolution + ',fps=' + str(fps)
+
+output_opts = '-y -f lavfi -t 5 -i anullsrc -filter_complex "[0]fade=in:st=0:d=1[0f];[1]fade=out:st=4:d=1[1f];concat=n=3:v=1:a=1[v][a]"'
+
 # prevideo = VideoFileClip(input_video)
 # video = prevideo.resize(resolution).set_start(video_start)
 
 video = FFmpeg(
-    inputs={input_video: None},
-    outputs={'output.mp4': '-vf scale=1920:1080 -y'}
+    inputs={intro_file: '-loop 1 -t 5', input_video: None},
+    outputs={'output.mp4': output_opts}
 )
 
 print(video.cmd)

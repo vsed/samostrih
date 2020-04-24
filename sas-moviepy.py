@@ -94,10 +94,10 @@ final = CompositeVideoClip([intro, video.set_start(intro.end-1).crossfadein(1)])
 
 
 
-final.write_videofile("output.mp4", fps=fps, preset="ultrafast", codec="libx264", logger=None) #, ffmpeg_params=["-x264-params", "sliced-threads=4"])
+# final.write_videofile("output.mp4", fps=fps, preset="ultrafast", codec="libx264", logger=None) #, ffmpeg_params=["-x264-params", "sliced-threads=4"])
 
 
-
+prevideo.write_videofile("output.mp4")
 
 
 ########################### END OF OUTPUT
