@@ -1,6 +1,6 @@
 from ffmpy import FFmpeg
 from PIL import Image, ImageFont, ImageDraw
-
+from os.path import exists
 
 import numpy as np
 from itertools import chain
@@ -12,10 +12,12 @@ name_fontsize = 90
 verse = "Žalm 63"
 verse_fontsize = int(name_fontsize * 0.62)
 text_color = 'rgb(60, 60, 60)'
-intro_length = "2.22"
+intro_length = 3
+overlay = 2
 
 input_video = "sample.mp4"
-video_start = 0
+video_start = 10
+video_end = 20
 resolution = '1920:1080'
 fps = 29.97
 
@@ -25,11 +27,11 @@ fps = 29.97
 # THIS IS INTRO SECTION:
 
 # Image used as intro background:
-intropic = "BCPlogonazev.png"
+introbg = "BCPlogonazev.png"
 
 
-intro = Image.open(intropic)
-draw = ImageDraw.Draw(intro)
+intropic = Image.open(introbg)
+draw = ImageDraw.Draw(intropic)
 
 # create font object with the font file and specify
 # desired size
@@ -62,22 +64,46 @@ draw.text(verse_position, verse, fill=text_color, font=verse_font)
 
 # save the edited image
 
-intro.save('intro.png')
-intro_file = 'intro.png'
+intro_file_pic = 'intro.png'
+intropic.save(intro_file_pic)
+intro_file_vid = 'intro.mp4'
+
+if not exists(intro_file_vid):
+    intro = FFmpeg(executable="./ffmpeg",
+        inputs={intro_file_pic: '-loop 1 -t ' + str(intro_length)},
+        outputs={intro_file_vid: '-y -vf fps=29.97 -crf 0'}
+    )
+    intro.run()
+
 ###################### END OF INTRO
 
 ###################################
 # VIDEO SECTION:
 
-output_opts = '-y -vf scale=' + resolution + ',fps=' + str(fps)
-
-output_opts = '-y -f lavfi -t 5 -i anullsrc -filter_complex "[0]fade=in:st=0:d=1[0f];[1]fade=out:st=4:d=1[1f];concat=n=3:v=1:a=1[v][a]"'
+# output_opts = '-y -vf scale=' + resolution + ',fps=' + str(fps)
+# output_opts = '-filter_complex "gltransition=duration=1:offset=2:source=fade.glsl " -y'
+output_opts = '-y -an \
+-filter_complex "\
+[1:v]eq=brightness=0:saturation=1.5[corrected];\
+[0:v]trim=start=0:end=' + str(round(intro_length - overlay, 2)) + ',setpts=PTS-STARTPTS[firstclip]; \
+[corrected]trim=start=' + str(overlay + video_start) + ':end=' + str(video_end) + ',setpts=PTS-STARTPTS[secondclip]; \
+[0:v]trim=start=' + str(round(intro_length - overlay, 2)) + ':end=' + str(intro_length) + ',setpts=PTS-STARTPTS[fadeoutsrc]; \
+[1:v]eq=brightness=0:saturation=1.5[corrected];\
+[corrected]trim=start=' + str(video_start) + ':end=' + str(overlay + video_start) + ',setpts=PTS-STARTPTS[fadeinsrc]; \
+[fadeinsrc]format=pix_fmts=yuva420p, \
+            fade=t=in:st=0:d=' + str(overlay) + ':alpha=1[fadein]; \
+[fadeoutsrc]format=pix_fmts=yuva420p, \
+            fade=t=out:st=0:d=' + str(overlay) + ':alpha=1[fadeout]; \
+[fadein]fifo[fadeinfifo]; \
+[fadeout]fifo[fadeoutfifo]; \
+[fadeoutfifo][fadeinfifo]overlay[crossfade]; \
+[firstclip][crossfade][secondclip]concat=n=3 "'
 
 # prevideo = VideoFileClip(input_video)
 # video = prevideo.resize(resolution).set_start(video_start)
 
-video = FFmpeg(
-    inputs={intro_file: '-loop 1 -t 5', input_video: None},
+video = FFmpeg(executable="./ffmpeg",
+    inputs={intro_file_vid: None, input_video: None},
     outputs={'output.mp4': output_opts}
 )
 
