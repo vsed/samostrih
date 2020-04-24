@@ -1,36 +1,23 @@
-from moviepy.editor import * #ImageClip, TextClip, CompositeVideoClip, show, preview
-import moviepy.video.fx.all as vfx
+from ffmpy import FFmpeg
+from PIL import Image, ImageFont, ImageDraw
+
+
 import numpy as np
 from itertools import chain
 import time
-# import pygame
 
 # VARIABLES:
 name = "Bože, tys můj bůh!"
 name_fontsize = 90
 verse = "Žalm 63"
 verse_fontsize = int(name_fontsize * 0.62)
+text_color = 'rgb(60, 60, 60)'
 intro_length = "2.22"
 
 input_video = "sample.mp4"
 video_start = 0
 resolution = (1920, 1080)
 fps = 29.97
-
-##################### pygame:
-
-import pygame, sys
-from pygame.locals import *
-
-# pygame.init()
-# DISPLAYSURF = pygame.display.set_mode((400, 300))
-# pygame.display.set_caption('Hello World!')
-# while True: # main game loop
-#     for event in pygame.event.get():
-#         if event.type == QUIT:
-#             pygame.quit()
-#             sys.exit()
-#     pygame.display.update()
 
 
 #######################
@@ -40,40 +27,58 @@ from pygame.locals import *
 # Image used as intro background:
 intropic = "BCPlogonazev.png"
 
-# Now we turn it into a 5 sec clip:
-intro_background = ImageClip(intropic)
 
-# Name and verse of the sermon:
-name = TextClip(txt=name, font="Arial", fontsize=name_fontsize, color="gray15")
-verse = TextClip(txt=verse, font="Arial", fontsize=verse_fontsize, color="gray15")
+intro = Image.open(intropic)
+draw = ImageDraw.Draw(intro)
+
+# create font object with the font file and specify
+# desired size
+
+name_font = ImageFont.truetype('Arial.ttf', size=name_fontsize)
+verse_font = ImageFont.truetype('Arial.ttf', size=verse_fontsize)
 
 # Position of the name and verse text:
 # Anchor is x and y coordinates of a point - under which the text will be drawn
 anchor = (1342, 744)
 
 # Position of the name calculations:
-name_dimensions = name.size
+name_dimensions = name_font.getsize(name)
 name_offset = (name_dimensions[0] / 2, 0)
 name_position = np.subtract(anchor, name_offset)
 
 # Position of the verse, relative to the name position - centered:
-verse_dimensions = verse.size
+verse_dimensions = verse_font.getsize(verse)
 xoffset = int((name_dimensions[0] - verse_dimensions[0]) / 2)
 yoffset = int(name_dimensions[1] + 30)
 verse_offset = (xoffset, yoffset)
 verse_position = np.add(name_position, verse_offset)
 
-preintro = CompositeVideoClip([intro_background, name.set_position(name_position), verse.set_position(verse_position)])
-intro = preintro.set_duration(intro_length)
+
+
+# draw the message on the background
+
+draw.text(name_position, name, fill=text_color, font=name_font)
+draw.text(verse_position, verse, fill=text_color, font=verse_font)
+
+# save the edited image
+
+intro.save('intro.png')
 ###################### END OF INTRO
 
 ###################################
 # VIDEO SECTION:
 
-prevideo = VideoFileClip(input_video)
-video = prevideo.resize(resolution).set_start(video_start)
+# prevideo = VideoFileClip(input_video)
+# video = prevideo.resize(resolution).set_start(video_start)
 
+video = FFmpeg(
+    inputs={input_video: None},
+    outputs={'output.mp4': '-vf scale=1920:1080 -y'}
+)
 
+print(video.cmd)
+
+video.run()
 
 
 ###################### END OF VIDEO
@@ -82,8 +87,8 @@ video = prevideo.resize(resolution).set_start(video_start)
 # MIXING SECTION:
 
 
-
-final = CompositeVideoClip([intro, video.set_start(intro.end-1).crossfadein(1)])   # .crossfadein(1)
+#
+# final = CompositeVideoClip([intro, video.set_start(intro.end-1).crossfadein(1)])   # .crossfadein(1)
 
 
 
@@ -94,7 +99,7 @@ final = CompositeVideoClip([intro, video.set_start(intro.end-1).crossfadein(1)])
 
 
 
-final.write_videofile("output.mp4", fps=fps, preset="ultrafast", codec="libx264")
+# final.write_videofile("output.mp4", fps=fps, preset="ultrafast", codec="libx264", logger=None) #, ffmpeg_params=["-x264-params", "sliced-threads=4"])
 
 
 
@@ -179,7 +184,7 @@ fixx_rgb = fix_rgb
 # print(type(fixx_rgb))
 # print("magnitude: ", magnitude)
 
-fix_clip = ColorClip((1920, 1080), color=fix_rgb)
+# fix_clip = ColorClip((1920, 1080), color=fix_rgb)
 
 # amber = ColorClip((1920, 1080), color=(255, 192, 0))
 # blue = ColorClip((300, 300), color=(0, 0, 255))
