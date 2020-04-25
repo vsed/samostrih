@@ -1,6 +1,7 @@
 from ffmpy import FFmpeg
 from PIL import Image, ImageFont, ImageDraw
 from os.path import exists
+import saslib
 
 import numpy as np
 from itertools import chain
@@ -15,9 +16,9 @@ text_color = 'rgb(60, 60, 60)'
 intro_length = 3
 overlay = 2
 
-input_video = "sample.mp4"
+input_video = "sample4.mp4"
 video_start = 10
-video_end = 20
+video_end = 13
 resolution = '1920:1080'
 fps = 29.97
 
@@ -84,11 +85,11 @@ if not exists(intro_file_vid):
 # output_opts = '-filter_complex "gltransition=duration=1:offset=2:source=fade.glsl " -y'
 output_opts = '-y -an \
 -filter_complex "\
-[1:v]eq=brightness=0:saturation=1.5[corrected];\
 [0:v]trim=start=0:end=' + str(round(intro_length - overlay, 2)) + ',setpts=PTS-STARTPTS[firstclip]; \
+[1:v]colorbalance=bs=.3[corrected]; \
 [corrected]trim=start=' + str(overlay + video_start) + ':end=' + str(video_end) + ',setpts=PTS-STARTPTS[secondclip]; \
 [0:v]trim=start=' + str(round(intro_length - overlay, 2)) + ':end=' + str(intro_length) + ',setpts=PTS-STARTPTS[fadeoutsrc]; \
-[1:v]eq=brightness=0:saturation=1.5[corrected];\
+[1:v]colorbalance=bs=.3[corrected]; \
 [corrected]trim=start=' + str(video_start) + ':end=' + str(overlay + video_start) + ',setpts=PTS-STARTPTS[fadeinsrc]; \
 [fadeinsrc]format=pix_fmts=yuva420p, \
             fade=t=in:st=0:d=' + str(overlay) + ':alpha=1[fadein]; \
@@ -97,12 +98,11 @@ output_opts = '-y -an \
 [fadein]fifo[fadeinfifo]; \
 [fadeout]fifo[fadeoutfifo]; \
 [fadeoutfifo][fadeinfifo]overlay[crossfade]; \
-[firstclip][crossfade][secondclip]concat=n=3 "'
+[firstclip][crossfade][secondclip]concat=n=3[output] " -map [output] -preset ultrafast'
 
-# prevideo = VideoFileClip(input_video)
-# video = prevideo.resize(resolution).set_start(video_start)
+# [1:v]eq=brightness=0:saturation=1.5[corrected];\
 
-video = FFmpeg(executable="./ffmpeg",
+video = FFmpeg(executable="ffmpeg",
     inputs={intro_file_vid: None, input_video: None},
     outputs={'output.mp4': output_opts}
 )
@@ -138,79 +138,13 @@ video.run()
 
 ########################### END OF OUTPUT
 
-def rgb_correction(ab=50, gm=50):
-    """
-    Returns RGB array for color correction as a tuple.
-    It is meant to be used as an image which
-    overlays treated picure - still or motion.
 
 
 
-    :param ab: Amber/Blue balance, aka warm/cold
-                value 0-100
-                0 = warmest
-                100 = coldest
 
-    :param gm: Green/Magenta balance
-                value 0-100
-                0 = greenest
-                100 = "magentest"
-    """
-    a = (1, 0.75, 0)
-    b = (0, 0, 1)
-    g = (0, 1, 0)
-    m = (1, 0, 1)
+# fix_rgb, magnitude = rgb_correction(40, 60)
+# fixx_rgb = fix_rgb
 
-    zero = np.array((0, 0, 0))
-    ones = np.array((1, 1, 1))
-
-    warm = zero
-    cold = zero
-    green = zero
-    magenta = zero
-    ab_res = zero
-    gm_res = zero
-
-    if ab != 50:
-        abx = abs(50 - ab) / 2
-        if ab > 50:
-            warm = np.multiply(a, abx * 5.1)
-            ab_res = warm
-        else:
-            cold = np.multiply(b, abx * 5.1)
-            ab_res = cold
-
-    if gm != 50:
-        gmx = abs(50 - gm) / 2
-        if gm > 50:
-            gm -= 50
-            green = np.multiply(g, gmx * 5.1)
-            gm_res = green
-        else:
-            magenta = np.multiply(m, gmx * 5.1)
-            gm_res = magenta
-
-    basic = np.add(ab_res, gm_res)
-    print("basic: ", basic)
-    print("gm: ", gm_res, "ab: ", ab_res)
-    multiplicator = 255 / np.max(basic)
-    if multiplicator <= 0 or multiplicator > 255:
-        multiplicator = 1
-    print("multiplicator: ", multiplicator)
-    data = np.multiply(basic, multiplicator)
-    preresult = np.ndarray.tolist(data.astype(int))
-    # result = tuple(chain.from_iterable(preresult))
-    print("preresult: ", preresult)
-    result = tuple(preresult)
-    magnitude = 1 / multiplicator / 2
-    if ab == 50 and gm == 50:
-        magnitude = 0
-    return result, magnitude
-
-
-
-fix_rgb, magnitude = rgb_correction(40, 60)
-fixx_rgb = fix_rgb
 # print("output: ", fix_rgb)
 # print(type(fixx_rgb))
 # print("magnitude: ", magnitude)
@@ -223,39 +157,3 @@ fixx_rgb = fix_rgb
 # green = ColorClip((300, 300), color=(0, 255, 0))
 # black = ColorClip((1920, 1080), color=(0, 0, 0))
 # gray = ColorClip((1920, 1080), color=(128, 128, 128))
-
-
-# result.show(0)
-
-#
-# blueclip = ImageClip('blue.jpg')
-# ex = ImageClip("blue.jpg")
-# blueclip2 = blueclip.fx(vfx.colorx, 0.9)
-# corrected = CompositeVideoClip([blueclip2, amber.set_opacity(0.13)])
-# corrected2 = CompositeVideoClip([corrected, magenta.set_opacity(0.01)])
-# corrected3 = corrected2.fx(vfx.lum_contrast, lum=0, contrast=0.3, contrast_thr=126)
-
-# # corrected.show()
-# corrected.save_frame(filename="corrected.png")
-# corrected2.save_frame(filename="corrected2.png")
-# corrected3.save_frame(filename="corrected3.png")
-# fix_clip.save_frame(filename="fix.png")
-#
-#
-# cor = ColorClip((1920, 1080), color=(255, 200, 39))
-# # cor.save_frame(filename="cor.png")
-# mid = blueclip.fx(vfx.colorx, 0.9)
-# mid2 = CompositeVideoClip([mid, cor.set_opacity(0.13)])
-# final = mid2.fx(vfx.lum_contrast, lum=0, contrast=0.3, contrast_thr=126)
-# final.save_frame(filename="final.png")
-
-# run = True
-# while run: # main game loop
-#     for event in pygame.event.get():
-#         if event.type == QUIT:
-#             run = False
-
-# print("hello")
-
-# result.write_videofile("test.mp4", fps=29.97, ffmpeg_params=['-crf', '22'], codec='libx264')
-# result.save_frame(filename='test.png')
