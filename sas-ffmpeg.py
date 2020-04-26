@@ -16,7 +16,7 @@ text_color = 'rgb(60, 60, 60)'
 intro_length = 3
 overlay = 2
 
-input_video = "sample4.mp4"
+input_video = "sample.mp4"
 video_start = 10
 video_end = 13
 resolution = '1920:1080'
@@ -86,10 +86,10 @@ if not exists(intro_file_vid):
 output_opts = '-y -an \
 -filter_complex "\
 [0:v]trim=start=0:end=' + str(round(intro_length - overlay, 2)) + ',setpts=PTS-STARTPTS[firstclip]; \
-[1:v]colorbalance=bs=.3[corrected]; \
+[1:v]colorbalance=bs=.3:rh=0.3[corrected]; \
 [corrected]trim=start=' + str(overlay + video_start) + ':end=' + str(video_end) + ',setpts=PTS-STARTPTS[secondclip]; \
 [0:v]trim=start=' + str(round(intro_length - overlay, 2)) + ':end=' + str(intro_length) + ',setpts=PTS-STARTPTS[fadeoutsrc]; \
-[1:v]colorbalance=bs=.3[corrected]; \
+[1:v]colorbalance=bs=.3:rh=0.3[corrected]; \
 [corrected]trim=start=' + str(video_start) + ':end=' + str(overlay + video_start) + ',setpts=PTS-STARTPTS[fadeinsrc]; \
 [fadeinsrc]format=pix_fmts=yuva420p, \
             fade=t=in:st=0:d=' + str(overlay) + ':alpha=1[fadein]; \
