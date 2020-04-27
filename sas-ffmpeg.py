@@ -16,7 +16,7 @@ text_color = 'rgb(60, 60, 60)'
 intro_length = 3
 overlay = 2
 
-input_video = "sample.mp4"
+input_video = "sample4.mp4"
 video_start = 10
 video_end = 13
 resolution = '1920:1080'

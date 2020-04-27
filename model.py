@@ -4,8 +4,9 @@ class Model:
         Initializes the two members the class holds:
         the file name and its contents.
         '''
-        self.fileName = None
-        self.fileContent = ""
+        self.fileNameVid = None
+        self.fileNameAudio = None
+        self.fileNameOutput = None
 
     def isValid(self, fileName):
         '''
@@ -19,20 +20,50 @@ class Model:
         except:
             return False
 
-    def setFileName(self, fileName):
+    def setFileNameVid(self, fileNameVid):
         '''
         sets the member fileName to the value of the argument
         if the file exists.  Otherwise resets both the filename
         and file contents members.
         '''
-        self.fileName = fileName
+        self.fileNameVid = fileNameVid
+
+    def setFileNameAudio(self, fileNameAudio):
+        '''
+        sets the member fileNameAudio to the value of the argument
+        if the file exists.  Otherwise resets both the fileNameAudio
+        and file contents members.
+        '''
+        self.fileNameAudio = fileNameAudio
+
+    def setFileNameOutput(self, fileNameOutput):
+        '''
+        sets the member fileNameOutput to the value of the argument
+        if the file exists.  Otherwise resets both the fileNameOutput
+        and file contents members.
+        '''
+        self.fileNameOutput = fileNameOutput
 
 
-    def getFileName(self):
+    def getFileNameVid(self):
         '''
-        Returns the name of the file name member.
+        Returns the NameVid of the file NameVid member.
         '''
-        return self.fileName
+        return self.fileNameVid
+
+
+    def getFileNameAudio(self):
+        '''
+        Returns the NameAudio of the file NameAudio member.
+        '''
+        return self.fileNameAudio
+
+
+    def getFileNameOutput(self):
+        '''
+        Returns the NameOutput of the file NameOutput member.
+        '''
+        return self.fileNameOutput
 
     def getFileContents(self):
         '''

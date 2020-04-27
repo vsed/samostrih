@@ -1,12 +1,16 @@
 from ffmpy import FFmpeg
 from PIL import Image, ImageFont, ImageDraw
 from os.path import exists
-import saslib
+import saslib, subprocess
 
 import numpy as np
 from itertools import chain
 import time
 
+def get_sec(time_str):
+    """Get Seconds from time."""
+    h, m, s = time_str.split(':')
+    return int(h) * 3600 + int(m) * 60 + round(float(s), 2)
 
 def rgb_correction(ab=50, gm=50):
     """
@@ -78,7 +82,7 @@ def rgb_correction(ab=50, gm=50):
     return result, magnitude
 
 def render(name="Sermon Title", name_fontsize=90, verse="Verse", intro_length=3, overlay=2, input_video="sample.mp4",
-           video_start=10, video_end=13):
+           video_start="00:00:00", video_end="00:00:10"):
     # VARIABLES:
     verse_fontsize = int(name_fontsize * 0.62)
     text_color = 'rgb(60, 60, 60)'
@@ -86,6 +90,8 @@ def render(name="Sermon Title", name_fontsize=90, verse="Verse", intro_length=3,
     resolution = '1920:1080'
     fps = 29.97
 
+    video_start_sec = get_sec(video_start)
+    video_end_sec = get_sec(video_end)
     #######################
 
     # THIS IS INTRO SECTION:
@@ -141,16 +147,19 @@ def render(name="Sermon Title", name_fontsize=90, verse="Verse", intro_length=3,
     ###################################
     # VIDEO SECTION:
 
+    input_opts = "-ss " + video_start
+
+
     # output_opts = '-y -vf scale=' + resolution + ',fps=' + str(fps)
     # output_opts = '-filter_complex "gltransition=duration=1:offset=2:source=fade.glsl " -y'
     output_opts = '-y -an \
     -filter_complex "\
     [0:v]trim=start=0:end=' + str(round(intro_length - overlay, 2)) + ',setpts=PTS-STARTPTS[firstclip]; \
     [1:v]colorbalance=bs=.3:rh=0.3[corrected]; \
-    [corrected]trim=start=' + str(overlay + video_start) + ':end=' + str(video_end) + ',setpts=PTS-STARTPTS[secondclip]; \
+    [corrected]trim=start=' + str(overlay) + ':end=' + str(video_end_sec - video_start_sec) + ',setpts=PTS-STARTPTS[secondclip]; \
     [0:v]trim=start=' + str(round(intro_length - overlay, 2)) + ':end=' + str(intro_length) + ',setpts=PTS-STARTPTS[fadeoutsrc]; \
     [1:v]colorbalance=bs=.3:rh=0.3[corrected]; \
-    [corrected]trim=start=' + str(video_start) + ':end=' + str(overlay + video_start) + ',setpts=PTS-STARTPTS[fadeinsrc]; \
+    [corrected]trim=start=0:end=' + str(overlay) + ',setpts=PTS-STARTPTS[fadeinsrc]; \
     [fadeinsrc]format=pix_fmts=yuva420p, \
                 fade=t=in:st=0:d=' + str(overlay) + ':alpha=1[fadein]; \
     [fadeoutsrc]format=pix_fmts=yuva420p, \
@@ -163,8 +172,10 @@ def render(name="Sermon Title", name_fontsize=90, verse="Verse", intro_length=3,
     # [1:v]eq=brightness=0:saturation=1.5[corrected];\
 
     video = FFmpeg(executable="ffmpeg",
-                   inputs={intro_file_vid: None, input_video: None},
+                   global_options="-stats -nostdin -hide_banner",
+                   inputs={intro_file_vid: None, input_video: input_opts},
                    outputs={'output.mp4': output_opts}
                    )
     print(video.cmd)
     video.run()
+    print("video.run: ", y)
