@@ -136,6 +136,7 @@ class MainWindowUIClass(Ui_MainWindow):
         self.x.moveToThread(self.thread1)
         self.thread1.started.connect(self.x.doRender)
         self.thread1.start()
+
 def main():
     """
     This is the MAIN ENTRY POINT of our application.  The code at the end

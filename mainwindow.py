@@ -290,7 +290,7 @@ class Ui_MainWindow(object):
         self.pushButton_vid.setText(_translate("MainWindow", "Browse"))
         self.label.setText(_translate("MainWindow", "Video:"))
         self.label_3.setText(_translate("MainWindow", "End:"))
-        self.lineEdit_vidend.setText(_translate("MainWindow", "00:00:10"))
+        self.lineEdit_vidend.setText(_translate("MainWindow", "00:00:03"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "One File"))
         self.label_19.setText(_translate("MainWindow", "Video 5:"))
         self.label_16.setText(_translate("MainWindow", "End:"))

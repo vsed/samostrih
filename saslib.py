@@ -1,8 +1,7 @@
-from ffmpy import FFmpeg
+from ffmpy3 import FFmpeg
 from PIL import Image, ImageFont, ImageDraw
 from os.path import exists
 import saslib, subprocess
-
 import numpy as np
 from itertools import chain
 import time
@@ -152,7 +151,7 @@ def render(name="Sermon Title", name_fontsize=90, verse="Verse", intro_length=3,
 
     # output_opts = '-y -vf scale=' + resolution + ',fps=' + str(fps)
     # output_opts = '-filter_complex "gltransition=duration=1:offset=2:source=fade.glsl " -y'
-    output_opts = '-y -an \
+    output_opts = '-an \
     -filter_complex "\
     [0:v]trim=start=0:end=' + str(round(intro_length - overlay, 2)) + ',setpts=PTS-STARTPTS[firstclip]; \
     [1:v]colorbalance=bs=.3:rh=0.3[corrected]; \
@@ -171,11 +170,14 @@ def render(name="Sermon Title", name_fontsize=90, verse="Verse", intro_length=3,
 
     # [1:v]eq=brightness=0:saturation=1.5[corrected];\
 
+
+
     video = FFmpeg(executable="ffmpeg",
-                   global_options="-stats -nostdin -hide_banner",
+                   global_options="-y",
                    inputs={intro_file_vid: None, input_video: input_opts},
                    outputs={'output.mp4': output_opts}
                    )
     print(video.cmd)
     video.run()
-    print("video.run: ", y)
+    # video.run_ffmpeg_command()
+    print("Rendering Finished")
