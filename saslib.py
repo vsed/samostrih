@@ -1,4 +1,4 @@
-from ffmpy3 import FFmpeg
+from ffmpy import FFmpeg
 from PIL import Image, ImageFont, ImageDraw
 from os.path import exists
 import saslib, subprocess
@@ -80,8 +80,31 @@ def rgb_correction(ab=50, gm=50):
         magnitude = 0
     return result, magnitude
 
+def ff_correction(ambl=0, grma=0):
+    r = 0.0
+    g = 0.0
+    b = 0.0
+
+    if ambl < 0:
+        b = abs(ambl / 200)
+    if ambl > 0:
+        r = ambl / 200
+        g = ambl / 266.66666
+    if grma < 0:
+        g += abs(grma / 200)
+    if grma > 0:
+        r += grma / 200
+        b += grma / 200
+
+    c = (max(r, g, b) / 2)
+    rr = round(r - c, 2)
+    gg = round(g - c, 2)
+    bb = round(b - c, 2)
+    return rr, gg, bb
+
+
 def render(name="Sermon Title", name_fontsize=90, verse="Verse", intro_length=3, overlay=2, input_video="sample.mp4",
-           video_start="00:00:00", video_end="00:00:10"):
+           video_start="00:00:00", video_end="00:00:10", amber_blue=0, green_magenta=0):
     # VARIABLES:
     verse_fontsize = int(name_fontsize * 0.62)
     text_color = 'rgb(60, 60, 60)'
@@ -148,16 +171,23 @@ def render(name="Sermon Title", name_fontsize=90, verse="Verse", intro_length=3,
 
     input_opts = "-ss " + video_start
 
+    rgb = ff_correction(amber_blue, green_magenta)
+    r = str(rgb[0])
+    g = str(rgb[1])
+    b = str(rgb[2])
+    cbopts = "rs=" + r + ":gs=" + g + ":bs=" + b
+    cbopts += ":rm=" + r + ":gm=" + g + ":bm=" + b
+    cbopts += ":rh=" + r + ":gh=" + g + ":bh=" + b
 
     # output_opts = '-y -vf scale=' + resolution + ',fps=' + str(fps)
     # output_opts = '-filter_complex "gltransition=duration=1:offset=2:source=fade.glsl " -y'
     output_opts = '-an \
     -filter_complex "\
     [0:v]trim=start=0:end=' + str(round(intro_length - overlay, 2)) + ',setpts=PTS-STARTPTS[firstclip]; \
-    [1:v]colorbalance=bs=.3:rh=0.3[corrected]; \
+    [1:v]colorbalance=' + cbopts + '[corrected]; \
     [corrected]trim=start=' + str(overlay) + ':end=' + str(video_end_sec - video_start_sec) + ',setpts=PTS-STARTPTS[secondclip]; \
     [0:v]trim=start=' + str(round(intro_length - overlay, 2)) + ':end=' + str(intro_length) + ',setpts=PTS-STARTPTS[fadeoutsrc]; \
-    [1:v]colorbalance=bs=.3:rh=0.3[corrected]; \
+    [1:v]colorbalance=' + cbopts + '[corrected]; \
     [corrected]trim=start=0:end=' + str(overlay) + ',setpts=PTS-STARTPTS[fadeinsrc]; \
     [fadeinsrc]format=pix_fmts=yuva420p, \
                 fade=t=in:st=0:d=' + str(overlay) + ':alpha=1[fadein]; \
@@ -181,3 +211,25 @@ def render(name="Sermon Title", name_fontsize=90, verse="Verse", intro_length=3,
     video.run()
     # video.run_ffmpeg_command()
     print("Rendering Finished")
+
+
+def preview(input_video="sample.mp4",video_start="00:01:00",
+            amber_blue=0, green_magenta=0):
+
+    video_start_sec = get_sec(video_start)
+    rgb = ff_correction(amber_blue, green_magenta)
+    r = str(rgb[0])
+    g = str(rgb[1])
+    b = str(rgb[2])
+    cbopts = "rs=" + r + ":gs=" + g + ":bs=" + b
+    cbopts += ":rm=" + r + ":gm=" + g + ":bm=" + b
+    cbopts += ":rh=" + r + ":gh=" + g + ":bh=" + b
+    input_opts = "-ss " + video_start
+    output_opts = "-vframes 1 -vf colorbalance=" + cbopts
+    frame = FFmpeg(executable="ffmpeg",
+                   global_options="-y",
+                   inputs={input_video: input_opts},
+                   outputs={'output.bmp': output_opts}
+                   )
+    print(frame.cmd)
+    frame.run()

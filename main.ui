@@ -32,7 +32,7 @@
       <x>40</x>
       <y>70</y>
       <width>421</width>
-      <height>271</height>
+      <height>281</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -182,7 +182,7 @@
         <x>10</x>
         <y>10</y>
         <width>391</width>
-        <height>231</height>
+        <height>235</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
@@ -384,16 +384,30 @@
      <string>Output:</string>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>60</x>
       <y>360</y>
       <width>394</width>
-      <height>101</height>
+      <height>117</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Green</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Blue (cold)</string>
+       </property>
+      </widget>
+     </item>
      <item row="3" column="2">
       <widget class="QLabel" name="label_7">
        <property name="text">
@@ -401,10 +415,35 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_5">
+     <item row="2" column="2">
+      <widget class="QLabel" name="label_6">
        <property name="text">
-        <string>Green</string>
+        <string>Amber (warm)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QSlider" name="corrGMSlider">
+       <property name="minimum">
+        <number>-100</number>
+       </property>
+       <property name="maximum">
+        <number>100</number>
+       </property>
+       <property name="pageStep">
+        <number>5</number>
+       </property>
+       <property name="value">
+        <number>0</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="tickPosition">
+        <enum>QSlider::TicksAbove</enum>
+       </property>
+       <property name="tickInterval">
+        <number>10</number>
        </property>
       </widget>
      </item>
@@ -425,43 +464,22 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="2">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>Amber (warm)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>Blue (cold)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QSlider" name="corrGMSlider">
-       <property name="maximum">
-        <number>100</number>
-       </property>
-       <property name="value">
-        <number>50</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="tickPosition">
-        <enum>QSlider::TicksAbove</enum>
-       </property>
-      </widget>
-     </item>
      <item row="2" column="1">
       <widget class="QSlider" name="corrABSlider">
+       <property name="minimum">
+        <number>-100</number>
+       </property>
        <property name="maximum">
         <number>100</number>
        </property>
+       <property name="singleStep">
+        <number>1</number>
+       </property>
+       <property name="pageStep">
+        <number>5</number>
+       </property>
        <property name="value">
-        <number>50</number>
+        <number>0</number>
        </property>
        <property name="tracking">
         <bool>false</bool>
@@ -479,7 +497,7 @@
         <enum>QSlider::TicksAbove</enum>
        </property>
        <property name="tickInterval">
-        <number>0</number>
+        <number>10</number>
        </property>
       </widget>
      </item>
@@ -504,7 +522,7 @@
       <x>60</x>
       <y>470</y>
       <width>398</width>
-      <height>145</height>
+      <height>101</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_5">
@@ -593,7 +611,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>61</x>
@@ -614,6 +632,41 @@
       <widget class="QProgressBar" name="progressBar">
        <property name="value">
         <number>0</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>590</y>
+      <width>259</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLineEdit" name="lineEdit_previewTime">
+       <property name="focusPolicy">
+        <enum>Qt::StrongFocus</enum>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="text">
+        <string>00:00:30</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_previewFrame">
+       <property name="text">
+        <string>Preview Frame</string>
        </property>
       </widget>
      </item>
@@ -698,11 +751,28 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButton_previewFrame</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>previewFrameSlot()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>242</x>
+     <y>624</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>158</x>
+     <y>625</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>browseSlot_vid()</slot>
   <slot>renderSlot()</slot>
   <slot>browseSlot_audio()</slot>
   <slot>browseSlot_output()</slot>
+  <slot>previewFrameSlot()</slot>
  </slots>
 </ui>

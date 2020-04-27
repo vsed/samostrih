@@ -3,14 +3,15 @@ from PyQt5.QtCore import QObject, pyqtSlot, QThread
 from mainwindow import Ui_MainWindow
 import sys, threading, time
 from model import Model
-from saslib import rgb_correction, render
+from saslib import rgb_correction, render, preview
 
 
 class qrender(QtCore.QObject):
     newData = QtCore.pyqtSignal(object)
 
     def __init__(self, parent=None, name="Sermon Title", name_fontsize=90, verse="Verse", intro_length=3,
-                 overlay=2, input_video="sample.mp4", video_start="00:00:00", video_end="00:00:10"):
+                 overlay=2, input_video="sample.mp4", video_start="00:00:00", video_end="00:00:10",
+                 amber_blue=0, green_magenta=0):
         QtCore.QObject.__init__(self)
         # self.parent = parent
         # self.sizey = sizey
@@ -21,9 +22,12 @@ class qrender(QtCore.QObject):
         self.input_video = input_video
         self.video_start = video_start
         self.video_end = video_end
+        self.amber_blue=amber_blue
+        self.green_magenta=green_magenta
 
     def doRender(self):
-        render(input_video=self.input_video, video_start=self.video_start, video_end=self.video_end)
+        render(input_video=self.input_video, video_start=self.video_start, video_end=self.video_end,
+               amber_blue=self.amber_blue, green_magenta=self.green_magenta)
 
 
 class MainWindowUIClass(Ui_MainWindow):
@@ -127,15 +131,25 @@ class MainWindowUIClass(Ui_MainWindow):
             self.model.setFileNameOutput(fileName)
             self.refreshAll()
 
+    def previewFrameSlot(self):
+        input_video = self.lineEdit_vid.text()
+        video_start = self.lineEdit_previewTime.text()
+        amber_blue = self.corrABSlider.value()
+        green_magenta = self.corrGMSlider.value()
+        preview(input_video=input_video, video_start=video_start, amber_blue=amber_blue, green_magenta=green_magenta)
+
     def renderSlot(self):
         input_video = self.lineEdit_vid.text()
         video_start = self.lineEdit_vidstart.text()
         video_end = self.lineEdit_vidend.text()
+        amber_blue = self.corrABSlider.value()
+        green_magenta = self.corrGMSlider.value()
         self.thread1 = QThread()
-        self.x = qrender(input_video=input_video, video_start=video_start, video_end=video_end)
+        self.x = qrender(input_video=input_video, video_start=video_start, video_end=video_end, amber_blue=amber_blue, green_magenta=green_magenta)
         self.x.moveToThread(self.thread1)
         self.thread1.started.connect(self.x.doRender)
         self.thread1.start()
+        self.thread1.quit()
 
 def main():
     """
