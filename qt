@@ -1,0 +1,5 @@
+#!/bin/sh
+pyuic5 -x main.ui -o main-raw.py
+mv mainwindow.py mainwindow2.py
+sed 's/.connect(MainWindow./.connect(self./' main-raw.py > mainwindow.py
+
